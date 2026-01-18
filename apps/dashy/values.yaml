@@ -15,12 +15,10 @@ service:
     ports:
       http:
         port: 8080
-        targetPort: 8080
 
 ingress:
   main:
     enabled: true
-    className: traefik
     hosts:
       - host: "" # Listens on the Pi's IP address
         paths:
