@@ -1,0 +1,39 @@
+controllers:
+  main:
+    containers:
+      main:
+        image:
+          repository: lissy93/dashy
+          tag: latest
+        env:
+          NODE_ENV: development
+
+service:
+  main:
+    controller: main
+    type: ClusterIP # Internal K3s networking only
+    ports:
+      http:
+        port: 8080
+        targetPort: 8080
+
+ingress:
+  main:
+    enabled: true
+    className: traefik
+    hosts:
+      - host: "" # Listens on the Pi's IP address
+        paths:
+          - path: / # This makes it the "Base URL"
+            pathType: Prefix
+            service:
+              identifier: main
+              port: http
+
+persistence:
+  config:
+    enabled: true
+    type: hostPath
+    hostPath: /root/container-data/dashy
+    globalMounts:
+      - path: /app/user-data

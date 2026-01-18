@@ -1,0 +1,16 @@
+repositories:
+  - name: bjw-s
+    url: https://bjw-s-labs.github.io/helm-charts/
+
+releases:
+  - name: dashy
+    namespace: monitoring
+    chart: bjw-s/app-template
+    values:
+      - apps/dashy/values.yaml
+
+  - name: glances
+    namespace: monitoring
+    chart: bjw-s/app-template
+    values:
+      - apps/glances/values.yaml

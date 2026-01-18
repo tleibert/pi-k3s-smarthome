@@ -1,0 +1,24 @@
+controllers:
+  main:
+    containers:
+      main:
+        image:
+          repository: nicolargo/glances
+          tag: latest
+        env:
+          GLANCES_OPT: "-w"
+          TZ: "America/Los_Angeles"
+        securityContext:
+          privileged: true # Needed to see host hardware
+
+# Allows Glances to see processes running on the Pi, not just in the container
+hostPID: true
+
+service:
+  main:
+    controller: main
+    type: LoadBalancer
+    ports:
+      http:
+        port: 61208
+# Glances doesn't strictly need a hostPath since you aren't using Docker socket
