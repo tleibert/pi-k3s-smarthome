@@ -1,5 +1,6 @@
 controllers:
   main:
+    type: daemonset
     pod:
       hostPID: true
     containers:
@@ -10,8 +11,6 @@ controllers:
         env:
           GLANCES_OPT: "-w"
           TZ: "America/Los_Angeles"
-        securityContext:
-          privileged: true
 
 service:
   main:
