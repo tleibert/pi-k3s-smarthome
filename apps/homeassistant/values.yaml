@@ -13,6 +13,23 @@ controllers:
         securityContext:
           privileged: true
 
+service:
+  main:
+    controller: main
+    type: ClusterIP
+    ports:
+      http:
+        port: 8123
+
+ingress:
+  main:
+    enabled: true
+    hosts:
+      - host: home.trevorpi.lan
+        paths:
+          - path: /
+            pathType: Prefix
+
 persistence:
   config:
     enabled: true
