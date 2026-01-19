@@ -4,13 +4,21 @@ repositories:
 
 releases:
   - name: dashy
-    namespace: monitoring
     chart: bjw-s/app-template
     values:
       - apps/dashy/values.yaml
 
   - name: glances
-    namespace: monitoring
     chart: bjw-s/app-template
     values:
       - apps/glances/values.yaml
+
+  - name: homeassistant
+    chart: bjw-s/app-template
+    values:
+      - apps/homeassistant/values.yaml
+
+  - name: zwave
+    chart: bjw-s/app-template
+    values:
+      - apps/zwave/values.yaml

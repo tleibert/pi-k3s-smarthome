@@ -11,7 +11,7 @@ controllers:
 service:
   main:
     controller: main
-    type: ClusterIP # Internal K3s networking only
+    type: ClusterIP
     ports:
       http:
         port: 8080
@@ -20,9 +20,9 @@ ingress:
   main:
     enabled: true
     hosts:
-      - host: "" # Listens on the Pi's IP address
+      - host: ""
         paths:
-          - path: / # This makes it the "Base URL"
+          - path: /
             pathType: Prefix
             service:
               identifier: main

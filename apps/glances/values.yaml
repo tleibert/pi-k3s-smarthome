@@ -9,9 +9,8 @@ controllers:
           GLANCES_OPT: "-w"
           TZ: "America/Los_Angeles"
         securityContext:
-          privileged: true # Needed to see host hardware
+          privileged: true
 
-# Allows Glances to see processes running on the Pi, not just in the container
 hostPID: true
 
 service:
@@ -21,4 +20,3 @@ service:
     ports:
       http:
         port: 61208
-# Glances doesn't strictly need a hostPath since you aren't using Docker socket

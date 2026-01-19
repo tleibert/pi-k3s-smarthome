@@ -1,0 +1,30 @@
+controllers:
+  main:
+    type: statefulset
+    pod:
+      hostNetwork: true
+      nodeSelector:
+        zigbee: "true"
+    containers:
+      main:
+        image:
+          repository: ghcr.io/home-assistant/home-assistant
+          tag: stable
+        securityContext:
+          privileged: true
+
+persistence:
+  config:
+    enabled: true
+    type: hostPath
+    hostPath: /root/container-data/homeassistant
+    globalMounts:
+      - path: /config
+
+  dbus:
+    enabled: true
+    type: hostPath
+    hostPath: /run/dbus
+    globalMounts:
+      - path: /run/dbus
+        readOnly: true
