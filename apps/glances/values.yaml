@@ -1,5 +1,7 @@
 controllers:
   main:
+    pod:
+      hostPID: true
     containers:
       main:
         image:
@@ -11,12 +13,19 @@ controllers:
         securityContext:
           privileged: true
 
-hostPID: true
-
 service:
   main:
     controller: main
-    type: LoadBalancer
+    type: ClusterIP
     ports:
       http:
         port: 61208
+
+ingress:
+  main:
+    enabled: true
+    hosts:
+      - host: glances.trevorpi.lan
+        paths:
+          - path: /
+            pathType: Prefix

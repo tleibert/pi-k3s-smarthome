@@ -24,9 +24,10 @@ ingress:
         paths:
           - path: /
             pathType: Prefix
-            service:
-              identifier: main
-              port: http
+      - host: "dashy.trevorpi.lan"
+        paths:
+          - path: /
+            pathType: Prefix
 
 persistence:
   config:
