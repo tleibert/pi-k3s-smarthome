@@ -16,13 +16,17 @@ spec:
   values:
     controllers:
       main:
+        type: statefulset
+        pod:
+          nodeSelector:
+            zwave: "true"
         containers:
           main:
             image:
-              repository: lissy93/dashy
+              repository: zwavejs/zwave-js-ui
               tag: latest # {"$imagepolicy": "flux-system:dashy-policy:digest"}
-            env:
-              NODE_ENV: development
+            securityContext:
+              privileged: true
 
     service:
       main:
@@ -30,25 +34,32 @@ spec:
         type: ClusterIP
         ports:
           http:
-            port: 8080
+            port: 8091
+          api:
+            port: 3000
 
     ingress:
       main:
         enabled: true
         hosts:
-          - host: ""
+          - host: zwave.trevorpi.lan
             paths:
               - path: /
                 pathType: Prefix
-          - host: "dashy.trevorpi.lan"
-            paths:
-              - path: /
-                pathType: Prefix
+                service:
+                  port: http
 
     persistence:
       config:
         enabled: true
         type: hostPath
-        hostPath: /root/container-data/dashy
+        hostPath: /root/container-data/zwave-ui
         globalMounts:
-          - path: /app/user-data
+          - path: /usr/src/app/store
+
+      zwave-device:
+        enabled: true
+        type: hostPath
+        hostPath: /dev/serial/by-id/usb-1a86_USB_Single_Serial_58E3038596-if00
+        globalMounts:
+          - path: /dev/zwave

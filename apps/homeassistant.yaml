@@ -16,13 +16,18 @@ spec:
   values:
     controllers:
       main:
+        type: statefulset
+        pod:
+          hostNetwork: true
+          nodeSelector:
+            zigbee: "true"
         containers:
           main:
             image:
-              repository: lissy93/dashy
-              tag: latest # {"$imagepolicy": "flux-system:dashy-policy:digest"}
-            env:
-              NODE_ENV: development
+              repository: ghcr.io/home-assistant/home-assistant
+              tag: stable # {"$imagepolicy": "flux-system:dashy-policy:digest"}
+            securityContext:
+              privileged: true
 
     service:
       main:
@@ -30,17 +35,13 @@ spec:
         type: ClusterIP
         ports:
           http:
-            port: 8080
+            port: 8123
 
     ingress:
       main:
         enabled: true
         hosts:
-          - host: ""
-            paths:
-              - path: /
-                pathType: Prefix
-          - host: "dashy.trevorpi.lan"
+          - host: home.trevorpi.lan
             paths:
               - path: /
                 pathType: Prefix
@@ -49,6 +50,14 @@ spec:
       config:
         enabled: true
         type: hostPath
-        hostPath: /root/container-data/dashy
+        hostPath: /root/container-data/homeassistant
         globalMounts:
-          - path: /app/user-data
+          - path: /config
+
+      dbus:
+        enabled: true
+        type: hostPath
+        hostPath: /run/dbus
+        globalMounts:
+          - path: /run/dbus
+            readOnly: true

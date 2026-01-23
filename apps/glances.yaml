@@ -16,13 +16,17 @@ spec:
   values:
     controllers:
       main:
+        type: daemonset
+        pod:
+          hostPID: true
         containers:
           main:
             image:
-              repository: lissy93/dashy
+              repository: nicolargo/glances
               tag: latest # {"$imagepolicy": "flux-system:dashy-policy:digest"}
             env:
-              NODE_ENV: development
+              GLANCES_OPT: "-w"
+              TZ: "America/Los_Angeles"
 
     service:
       main:
@@ -30,25 +34,13 @@ spec:
         type: ClusterIP
         ports:
           http:
-            port: 8080
+            port: 61208
 
     ingress:
       main:
         enabled: true
         hosts:
-          - host: ""
+          - host: glances.trevorpi.lan
             paths:
               - path: /
                 pathType: Prefix
-          - host: "dashy.trevorpi.lan"
-            paths:
-              - path: /
-                pathType: Prefix
-
-    persistence:
-      config:
-        enabled: true
-        type: hostPath
-        hostPath: /root/container-data/dashy
-        globalMounts:
-          - path: /app/user-data
