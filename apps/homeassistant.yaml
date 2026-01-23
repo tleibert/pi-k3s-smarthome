@@ -25,10 +25,9 @@ spec:
           main:
             image:
               repository: ghcr.io/home-assistant/home-assistant
-              tag: stable # {"$imagepolicy": "flux-system:glances:tag"}
+              tag: 4.4.1 # {"$imagepolicy": "flux-system:glances:tag"}
             securityContext:
               privileged: true
-
     service:
       main:
         controller: main
@@ -36,7 +35,6 @@ spec:
         ports:
           http:
             port: 8123
-
     ingress:
       main:
         enabled: true
@@ -45,7 +43,6 @@ spec:
             paths:
               - path: /
                 pathType: Prefix
-
     persistence:
       config:
         enabled: true
@@ -53,7 +50,6 @@ spec:
         hostPath: /root/container-data/homeassistant
         globalMounts:
           - path: /config
-
       dbus:
         enabled: true
         type: hostPath

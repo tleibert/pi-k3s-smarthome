@@ -23,11 +23,10 @@ spec:
           main:
             image:
               repository: nicolargo/glances
-              tag: latest # {"$imagepolicy": "flux-system:glances:tag"}
+              tag: 4.4.1 # {"$imagepolicy": "flux-system:glances:tag"}
             env:
               GLANCES_OPT: "-w"
               TZ: "America/Los_Angeles"
-
     service:
       main:
         controller: main
@@ -35,7 +34,6 @@ spec:
         ports:
           http:
             port: 61208
-
     ingress:
       main:
         enabled: true

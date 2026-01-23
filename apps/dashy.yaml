@@ -19,11 +19,10 @@ spec:
         containers:
           main:
             image:
-              repository: lissy93/dashy # {"$imagepolicy": "flux-system:dashy:digest"}
+              repository: sha256:02cd2baaf9f7d08cdf10d3500b0a10ab074d1a756a2d2ef346e935921ffcc03c # {"$imagepolicy": "flux-system:dashy:digest"}
               tag: latest
             env:
               NODE_ENV: development
-
     service:
       main:
         controller: main
@@ -31,7 +30,6 @@ spec:
         ports:
           http:
             port: 8080
-
     ingress:
       main:
         enabled: true
@@ -44,7 +42,6 @@ spec:
             paths:
               - path: /
                 pathType: Prefix
-
     persistence:
       config:
         enabled: true
