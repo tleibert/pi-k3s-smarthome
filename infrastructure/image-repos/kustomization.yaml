@@ -4,3 +4,4 @@ resources:
   - dashy.yaml
   - glances.yaml
   - homeassistant.yaml
+  - zwave.yaml

@@ -22,7 +22,7 @@ spec:
         containers:
           main:
             image:
-              repository: nicolargo/glances
+              repository: nicolargo/glances # {"$imagepolicy": "flux-system:glances:name"}
               tag: 4.4.1 # {"$imagepolicy": "flux-system:glances:tag"}
             env:
               GLANCES_OPT: "-w"

@@ -23,8 +23,8 @@ spec:
         containers:
           main:
             image:
-              repository: zwavejs/zwave-js-ui
-              tag: latest # {"$imagepolicy": "flux-system:dashy-policy:digest"}
+              repository: zwavejs/zwave-js-ui # {"$imagepolicy": "flux-system:zwave:name"}
+              tag: latest # {"$imagepolicy": "flux-system:zwave:tag"}
             securityContext:
               privileged: true
 

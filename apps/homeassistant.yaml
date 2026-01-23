@@ -24,7 +24,7 @@ spec:
         containers:
           main:
             image:
-              repository: ghcr.io/home-assistant/home-assistant
+              repository: ghcr.io/home-assistant/home-assistant # {"$imagepolicy": "flux-system:homeassistant:name"}
               tag: 2026.1.3 # {"$imagepolicy": "flux-system:homeassistant:tag"}
             securityContext:
               privileged: true
