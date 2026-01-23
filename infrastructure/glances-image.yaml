@@ -15,8 +15,6 @@ metadata:
 spec:
   imageRepositoryRef:
     name: glances
-  selectors:
-    - static: latest
   policy:
-    alphabetical:
-      order: asc
+    semver:
+      range: ">=4.4.1"
