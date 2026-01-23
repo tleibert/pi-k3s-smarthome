@@ -22,8 +22,8 @@ spec:
         containers:
           main:
             image:
-              repository: nicolargo/glances
-              tag: latest # {"$imagepolicy": "flux-system:dashy-policy:digest"}
+              repository: nicolargo/glances # {"$imagepolicy": "flux-system:glances:tag"}
+              tag: latest # {"$imagepolicy": "flux-system:glances:digest"}
             env:
               GLANCES_OPT: "-w"
               TZ: "America/Los_Angeles"

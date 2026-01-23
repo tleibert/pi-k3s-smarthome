@@ -1,0 +1,20 @@
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImageRepository
+metadata:
+  name: glances
+  namespace: flux-system
+spec:
+  image: nicolargo/glances
+  interval: 2h # Checks every 2 hours to avoid Docker Hub limits
+---
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImagePolicy
+metadata:
+  name: glances
+  namespace: flux-system
+spec:
+  imageRepositoryRef:
+    name: glances
+  policy:
+    alphabetical:
+      order: asc
