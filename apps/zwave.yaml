@@ -24,10 +24,9 @@ spec:
           main:
             image:
               repository: zwavejs/zwave-js-ui # {"$imagepolicy": "flux-system:zwave:name"}
-              tag: latest # {"$imagepolicy": "flux-system:zwave:tag"}
+              tag: 11.10.1 # {"$imagepolicy": "flux-system:zwave:tag"}
             securityContext:
               privileged: true
-
     service:
       main:
         controller: main
@@ -37,7 +36,6 @@ spec:
             port: 8091
           api:
             port: 3000
-
     ingress:
       main:
         enabled: true
@@ -48,7 +46,6 @@ spec:
                 pathType: Prefix
                 service:
                   port: http
-
     persistence:
       config:
         enabled: true
@@ -56,7 +53,6 @@ spec:
         hostPath: /root/container-data/zwave-ui
         globalMounts:
           - path: /usr/src/app/store
-
       zwave-device:
         enabled: true
         type: hostPath
