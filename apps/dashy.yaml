@@ -19,8 +19,8 @@ spec:
         containers:
           main:
             image:
-              repository: lissy93/dashy
-              tag: latest # {"$imagepolicy": "flux-system:dashy-policy:digest"}
+              repository: lissy93/dashy # {"$imagepolicy": "flux-system:dashy:digest"}
+              tag: latest
             env:
               NODE_ENV: development
 
