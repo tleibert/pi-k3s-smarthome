@@ -17,6 +17,7 @@ spec:
     name: glances
   filterTags:
     pattern: "^latest$"
+  interval: 2h
   digestReflectionPolicy: Always
   policy:
     alphabetical:
