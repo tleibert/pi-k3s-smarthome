@@ -4,7 +4,7 @@ metadata:
   name: dashy
   namespace: flux-system
 spec:
-  image: nicolargo/glances
+  image: lissy93/dashy
   interval: 2h # Checks every 2 hours to avoid Docker Hub limits
 ---
 apiVersion: image.toolkit.fluxcd.io/v1
@@ -14,7 +14,7 @@ metadata:
   namespace: flux-system
 spec:
   imageRepositoryRef:
-    name: glances
+    name: dashy
   filterTags:
     pattern: "^latest$"
   interval: 2h
