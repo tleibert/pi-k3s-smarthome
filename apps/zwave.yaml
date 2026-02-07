@@ -5,7 +5,7 @@ metadata:
   namespace: default
 spec:
   interval: 1h
-  driftCorrection:
+  driftDetection:
     mode: enabled
   chart:
     spec:
