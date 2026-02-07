@@ -1,0 +1,59 @@
+appConfig:
+  title: Home Dashboard
+  theme: Nord
+  layout: horizontal
+  iconSize: large
+  language: en
+  statusCheck: true
+
+pageInfo:
+  title: TrevorPI Dashboard
+  navLinks:
+    - title: GitHub
+      path: https://github.com/lissy93/dashy
+    - title: Docs
+      path: https://dashy.to/docs
+
+sections:
+  - name: Home Automation
+    icon: mdi-home-automation
+    items:
+      - title: Home Assistant
+        description: Local Smart Home Controller
+        icon: https://www.home-assistant.io/images/favicon.ico
+        url: http://home.trevorpi.lan
+        statusCheck: true
+        statusCheckUrl: http://home.trevorpi.lan
+        type: app
+
+      - title: Z-Wave JS UI
+        description: Manage your Z-Wave network
+        icon: https://avatars.githubusercontent.com/u/54627315?s=200&v=4
+        url: http://zwave.trevorpi.lan
+        statusCheck: true
+        statusCheckUrl: http://zwave.trevorpi.lan/health
+        type: app
+
+  - name: Server Status
+    icon: mdi-server-network
+    items:
+      - title: Glances
+        description: System Monitoring
+        icon: https://raw.githubusercontent.com/walkxhub/dashboard-icons/master/png/glances.png
+        url: http://glances.trevorpi.lan
+        statusCheck: true
+        statusCheckUrl: http://glances.trevorpi.lan/api/4/status
+        type: app
+    widgets:
+      - type: gl-current-cores
+        options:
+          hostname: http://glances.trevorpi.lan
+      - type: gl-cpu-temp
+        options:
+          hostname: http://glances.trevorpi.lan
+      - type: gl-current-mem
+        options:
+          hostname: http://glances.trevorpi.lan
+      - type: gl-disk-space
+        options:
+          hostname: http://glances.trevorpi.lan

@@ -67,7 +67,10 @@ spec:
     persistence:
       config:
         enabled: true
-        type: hostPath
-        hostPath: /root/container-data/dashy
-        globalMounts:
-          - path: /app/user-data
+        type: configMap
+        name: dashy-config
+        advancedMounts:
+          main:
+            main:
+              - path: /app/user-data/conf.yml
+                subPath: conf.yml
