@@ -30,6 +30,30 @@ spec:
               tag: 2026.2.1 # {"$imagepolicy": "flux-system:homeassistant:tag"}
             securityContext:
               privileged: true
+            probes:
+              # Readiness: Check if the web UI is up
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /
+                    port: 8123
+                  initialDelaySeconds: 30
+                  periodSeconds: 10
+                  timeoutSeconds: 1
+                  failureThreshold: 3
+              # Liveness: Restart the pod if it hangs
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /
+                    port: 80
+                  initialDelaySeconds: 30
+                  periodSeconds: 20
+                  failureThreshold: 5
     service:
       main:
         controller: main
