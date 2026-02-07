@@ -16,7 +16,13 @@ spec:
       author:
         email: fluxcdbot@users.noreply.github.com
         name: fluxcdbot
-      messageTemplate: "chore(auto): update image tags"
+      messageTemplate: |
+        Automated image update: {{ range .Changed.Changes }}{{ .Target.Name }}{{ end }}
+
+        Changes:
+        {{ range .Changed.Changes -}}
+        - {{ .Target.Name }}: {{ .OldValue }} -> {{ .NewValue }}
+        {{ end -}}
   update:
     path: ./apps
     strategy: Setters
