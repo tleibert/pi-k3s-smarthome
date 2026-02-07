@@ -5,6 +5,8 @@ metadata:
   namespace: default
 spec:
   interval: 1h
+  driftCorrection:
+    mode: enabled
   chart:
     spec:
       chart: app-template
