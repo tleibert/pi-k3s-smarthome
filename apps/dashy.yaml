@@ -26,6 +26,25 @@ spec:
               digest: "sha256:3b77456e3b0e28095258349ec7bbc3de7d23eede425fdc6e8cf21129926be92e" # {"$imagepolicy": "flux-system:dashy:digest"}
             env:
               NODE_ENV: development
+            probes:
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /
+                    port: 8080
+                  initialDelaySeconds: 5
+                  periodSeconds: 10
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /
+                    port: 8080
+                  initialDelaySeconds: 15
+                  periodSeconds: 30
     service:
       main:
         controller: main
