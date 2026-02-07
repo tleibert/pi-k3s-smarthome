@@ -29,6 +29,25 @@ spec:
               tag: 11.11.0 # {"$imagepolicy": "flux-system:zwave:tag"}
             securityContext:
               privileged: true
+            probes:
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /health/zwave
+                    port: 8091
+                  initialDelaySeconds: 10
+                  periodSeconds: 10
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /health
+                    port: 8091
+                  initialDelaySeconds: 15
+                  periodSeconds: 20
     service:
       main:
         controller: main
