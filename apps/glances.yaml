@@ -29,6 +29,25 @@ spec:
             env:
               GLANCES_OPT: "-w"
               TZ: "America/Los_Angeles"
+            probes:
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /api/4/status
+                    port: 61208
+                  initialDelaySeconds: 5
+                  periodSeconds: 10
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /api/4/status
+                    port: 61208
+                  initialDelaySeconds: 15
+                  periodSeconds: 30
     service:
       main:
         controller: main
