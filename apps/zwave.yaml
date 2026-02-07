@@ -37,6 +37,9 @@ spec:
                   httpGet:
                     path: /health/zwave
                     port: 8091
+                    httpHeaders:
+                      - name: Accept
+                        value: text/plain
                   initialDelaySeconds: 10
                   periodSeconds: 10
               liveness:
@@ -46,6 +49,9 @@ spec:
                   httpGet:
                     path: /health
                     port: 8091
+                    httpHeaders:
+                      - name: Accept
+                        value: text/plain
                   initialDelaySeconds: 15
                   periodSeconds: 20
     service:
