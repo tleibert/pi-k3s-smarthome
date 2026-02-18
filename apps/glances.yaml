@@ -25,7 +25,7 @@ spec:
           main:
             image:
               repository: nicolargo/glances # {"$imagepolicy": "flux-system:glances:name"}
-              tag: 4.4.1 # {"$imagepolicy": "flux-system:glances:tag"}
+              tag: 4.5.0 # {"$imagepolicy": "flux-system:glances:tag"}
             env:
               GLANCES_OPT: "-w"
               TZ: "America/Los_Angeles"
