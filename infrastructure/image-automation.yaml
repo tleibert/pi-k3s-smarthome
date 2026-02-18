@@ -17,11 +17,11 @@ spec:
         email: fluxcdbot@users.noreply.github.com
         name: fluxcdbot
       messageTemplate: |
-        Automated image update: {{ range .Changed.Changes }}{{ .Target.Name }}{{ end }}
+        Automated image update
 
         Changes:
-        {{ range .Changed.Changes -}}
-        - {{ .Target.Name }}: {{ .OldValue }} -> {{ .NewValue }}
+        {{ range .Updated.Objects -}}
+        - {{ .Name }}: {{ .OldValue }} -> {{ .NewValue }}
         {{ end -}}
   update:
     path: ./apps
