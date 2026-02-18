@@ -19,9 +19,15 @@ spec:
       messageTemplate: |
         Automated image update
 
-        Changes:
-        {{ range .Updated.Objects -}}
-        - {{ .Name }}: {{ .OldValue }} -> {{ .NewValue }}
+        Automation: {{ .AutomationObject.Name }}
+
+        Objects:
+        {{ range $resource, $changes := .Changed.Objects -}}
+        - {{ $resource.Kind }} {{ $resource.Name }}
+          Changes:
+        {{- range $change := $changes }}
+            - {{ $change.OldValue }} -> {{ $change.NewValue }}
+        {{ end -}}
         {{ end -}}
   update:
     path: ./apps
