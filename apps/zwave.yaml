@@ -26,7 +26,7 @@ spec:
           main:
             image:
               repository: zwavejs/zwave-js-ui # {"$imagepolicy": "flux-system:zwave:name"}
-              tag: 11.11.0 # {"$imagepolicy": "flux-system:zwave:tag"}
+              tag: 11.12.0 # {"$imagepolicy": "flux-system:zwave:tag"}
             securityContext:
               privileged: true
             probes:
