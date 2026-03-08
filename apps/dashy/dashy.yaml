@@ -23,7 +23,7 @@ spec:
             image:
               repository: lissy93/dashy # {"$imagepolicy": "flux-system:dashy:name"}
               tag: latest # {"$imagepolicy": "flux-system:dashy:tag"}
-              digest: "sha256:907c84359d481b1d1693dd0fed986aeb10c4cf384219ee1de91568dec00a9abb" # {"$imagepolicy": "flux-system:dashy:digest"}
+              digest: "sha256:2eb764df4f24878eda9ae664d91c50f32eebf41c9e35faf99dddc2e77853ab5d" # {"$imagepolicy": "flux-system:dashy:digest"}
             env:
               NODE_ENV: development
             probes:
