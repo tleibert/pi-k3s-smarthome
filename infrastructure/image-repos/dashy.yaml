@@ -16,9 +16,7 @@ spec:
   imageRepositoryRef:
     name: dashy
   filterTags:
-    pattern: "^latest$"
-  interval: 2h
-  digestReflectionPolicy: Always
+    pattern: '^(\d+)\.(\d+)\.(\d+)$'
   policy:
-    alphabetical:
-      order: asc
+    semver:
+      range: ">=4.1.0"
