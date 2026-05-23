@@ -42,13 +42,17 @@ This installs Flux controllers and creates a deploy key in the GitHub repo.
 
 ## After Flux Syncs
 
-Flux automatically applies (in order of the kustomization):
-1. **Gateway API CRDs** — `infrastructure/gateway/crds/`
-2. **Traefik HelmChartConfig** — enables the Gateway API provider in K3s Traefik
-3. **GatewayClass + Gateway** — the Traefik Gateway API listener
-4. **All 4 apps** — dashy, glances, homeassistant, zwave (HelmReleases create deployments, services, and HTTPRoutes)
+Flux applies resources in guaranteed order via 3 Kustomizations with `dependsOn`:
 
-> Note: On the very first reconciliation, Gateway API objects may briefly fail while CRDs register. Flux retries every 10 minutes — everything converges within 1-2 cycles.
+```
+gateway-crds  (Gateway API CRDs, fetched from upstream URL)
+  ↓ dependsOn
+infrastructure (HelmRepository, Traefik Gateway provider, GatewayClass, Gateway)
+  ↓ dependsOn
+apps           (dashy, glances, homeassistant, zwave — HelmReleases + HTTPRoutes)
+```
+
+Each Kustomization waits for its dependency to be fully healthy before reconciling. On a fresh Pi, everything converges in a single reconciliation pass with no retry cycles.
 
 ## What's NOT in this repo
 
