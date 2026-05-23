@@ -6,8 +6,8 @@ metadata:
 spec:
   gatewayClassName: traefik
   listeners:
-    - name: http
-      port: 80
+    - name: web
+      port: 8000
       protocol: HTTP
       allowedRoutes:
         namespaces:
