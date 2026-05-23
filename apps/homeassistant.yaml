@@ -63,12 +63,14 @@ spec:
             port: 8123
     ingress:
       main:
+        enabled: false
+    route:
+      main:
         enabled: true
-        hosts:
-          - host: home.trevorpi.lan
-            paths:
-              - path: /
-                pathType: Prefix
+        hostnames:
+          - "home.trevorpi.lan"
+        parentRefs:
+          - name: internal
     persistence:
       config:
         enabled: true

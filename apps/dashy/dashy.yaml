@@ -53,16 +53,15 @@ spec:
             port: 8080
     ingress:
       main:
+        enabled: false
+    route:
+      main:
         enabled: true
-        hosts:
-          - host: ""
-            paths:
-              - path: /
-                pathType: Prefix
-          - host: "dashy.trevorpi.lan"
-            paths:
-              - path: /
-                pathType: Prefix
+        hostnames:
+          - "trevorpi.lan"
+          - "dashy.trevorpi.lan"
+        parentRefs:
+          - name: internal
     persistence:
       config:
         enabled: true
