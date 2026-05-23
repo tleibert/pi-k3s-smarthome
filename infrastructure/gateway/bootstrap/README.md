@@ -1,61 +1,57 @@
-# Bootstrap Prerequisites for Gateway API on K3s
+# Bootstrap Prerequisites
 
-These are **one-time cluster-admin actions** that must be done before Flux can manage Gateway API resources.
-They live in the repo for documentation and reproducibility — not applied by Flux GitOps.
+These are the **only manual steps** needed on a fresh Raspberry Pi. Everything else is GitOps-managed via Flux.
 
-## 1. Gateway API CRDs
+## 1. OS + K3s
 
-CRDs are already installed on the cluster (as of 2026-05-23).
-
-To install/reinstall:
+Install K3s on a Debian-based arm64 Pi:
 ```bash
-# Standard channel (GatewayClass, Gateway, HTTPRoute)
-kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.2.1/standard-install.yaml
+curl -sfL https://get.k3s.io | sh -
+```
+This gives you a single-node cluster with built-in Traefik.
 
-# Or experimental (includes validation webhook)
-kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.2.1/experimental-install.yaml
+## 2. Node Labels
+
+Required by homeassistant (`zigbee=true`) and zwave (`zwave=true`) for pod scheduling:
+```bash
+kubectl label node $(hostname) zigbee=true zwave=true
 ```
 
-Verify:
+## 3. Host Paths
+
+Create directories for persistence mounts:
 ```bash
-kubectl get crd | grep gateway.networking.k8s.io
+mkdir -p /root/container-data/homeassistant
+mkdir -p /root/container-data/zwave-ui
 ```
 
-## 2. Enable Traefik Gateway API Provider
+> The zwave USB device path (`/dev/serial/by-id/usb-1a86_USB_Single_Serial_58E3038596-if00`) is hardware-specific and may need updating in `apps/zwave.yaml` for a different Pi/radio.
 
-K3s deploys Traefik via a HelmChart in `kube-system`. To enable the Gateway API provider, apply the HelmChartConfig:
-
-```bash
-kubectl apply -f infrastructure/gateway/bootstrap/traefik-helmchartconfig.yaml
-```
-
-This adds `kubernetesGateway` provider alongside the existing `kubernetesIngress` and `kubernetesCRD` providers. Both Ingress and Gateway API work in parallel during migration.
-
-> **K3s auto-apply note**: For persistence across node reboots, also place this file at
-> `/var/lib/rancher/k3s/server/manifests/traefik-helmchartconfig.yaml` on the node.
-
-Verify:
-```bash
-kubectl -n kube-system logs -l app.kubernetes.io/name=traefik | grep -i "kubernetesgateway\|gateway.*provider"
-kubectl -n kube-system get deployment traefik -o jsonpath='{.spec.template.spec.containers[0].args}' | tr ',' '\n' | grep gateway
-```
-
-## 3. Verify Gateway API Readiness
+## 4. Flux Bootstrap
 
 ```bash
-kubectl get gatewayclass,gateway -A
-kubectl get httproute -A
+flux bootstrap github \
+  --owner=tleibert \
+  --repository=pi-k3s-smarthome \
+  --branch=main \
+  --path=./clusters/my-pi \
+  --personal
 ```
 
-## Cleanup of Half-Baked Install
+This installs Flux controllers and creates a deploy key in the GitHub repo.
 
-If any Gateway API objects were manually created before this GitOps migration:
-```bash
-# Check for manually-created objects
-kubectl get gatewayclass,gateway,httproute -A
+## After Flux Syncs
 
-# Delete any that conflict with GitOps-managed resources
-kubectl delete gatewayclass <name>
-kubectl delete gateway <name> -n <namespace>
-kubectl delete httproute <name> -n <namespace>
-```
+Flux automatically applies (in order of the kustomization):
+1. **Gateway API CRDs** — `infrastructure/gateway/crds/`
+2. **Traefik HelmChartConfig** — enables the Gateway API provider in K3s Traefik
+3. **GatewayClass + Gateway** — the Traefik Gateway API listener
+4. **All 4 apps** — dashy, glances, homeassistant, zwave (HelmReleases create deployments, services, and HTTPRoutes)
+
+> Note: On the very first reconciliation, Gateway API objects may briefly fail while CRDs register. Flux retries every 10 minutes — everything converges within 1-2 cycles.
+
+## What's NOT in this repo
+
+- **mDNS / Avahi**: `.trevorpi.lan` resolution is handled by Avahi on the Pi (zero config on Debian). The Pi must have hostname `trevorpi`.
+- **Static IP**: The Pi uses `192.168.4.20` (seen in Gateway status). Configure via `/etc/network/interfaces` or DHCP reservation.
+- **ZWave USB radio**: The ZWave JS UI pod needs `/dev/serial/by-id/usb-1a86_USB_Single_Serial_58E3038596-if00` to exist (a physical Z-Wave USB stick).
