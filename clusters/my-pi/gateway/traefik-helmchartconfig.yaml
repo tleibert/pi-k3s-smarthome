@@ -1,0 +1,19 @@
+---
+# K3s-specific: enables the Gateway API provider in K3s's built-in Traefik.
+# On a non-K3s cluster, Traefik would be configured via its own HelmRelease values.
+---
+apiVersion: helm.cattle.io/v1
+kind: HelmChartConfig
+metadata:
+  name: traefik
+  namespace: kube-system
+spec:
+  valuesContent: |-
+    providers:
+      kubernetesGateway:
+        enabled: true
+      kubernetesIngress:
+        enabled: true
+    experimental:
+      kubernetesGateway:
+        enabled: true

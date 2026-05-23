@@ -4,4 +4,3 @@ resources:
   - image-repos
   - image-automation.yaml
   - sources.yaml
-  - gateway

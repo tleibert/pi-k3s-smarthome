@@ -1,3 +1,6 @@
+---
+# K3s-specific: port 8000 is K3s's "web" entrypoint (K3s runs Traefik as non-root).
+# On a standard cluster, this would be port 80.
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:

@@ -4,5 +4,6 @@ resources:
   - gotk-components.yaml
   - gotk-sync.yaml
   - gateway-crds.yaml
+  - cluster-gateway.yaml
   - infrastructure.yaml
   - apps.yaml
