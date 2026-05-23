@@ -63,9 +63,6 @@ spec:
             port: 8091
           api:
             port: 3000
-    ingress:
-      main:
-        enabled: false
     route:
       main:
         enabled: true
