@@ -8,7 +8,7 @@ spec:
   chart:
     spec:
       chart: external-dns
-      version: "1.14.5"
+      version: "1.21.1"
       sourceRef:
         kind: HelmRepository
         name: kubernetes-sigs
@@ -17,12 +17,13 @@ spec:
   values:
     provider:
       name: cloudflare
-    extraEnv:
+    env:
       - name: CF_API_TOKEN
         valueFrom:
           secretKeyRef:
             name: cloudflare-api-token
             key: api-token
+    registry: txt
     sources:
       - gateway-httproute
     domainFilters:

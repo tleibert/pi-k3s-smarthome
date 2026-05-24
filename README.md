@@ -134,10 +134,10 @@ Everything converges in a **single reconciliation pass** — no retry cycles.
 │   ├── gateway/             #   Gateway, Traefik HelmChartConfig
 │   │   └── crds/            #   Gateway API CRDs (fetched from upstream URL)
 │   ├── cert-manager/        #   cert-manager resources
-│   │   ├── install/         #     Namespace + HelmRelease (pinned to v1.17.1)
+│   │   ├── install/         #     Namespace + HelmRelease (pinned to v1.20.2)
 │   │   ├── cluster-issuer.yaml
 │   │   └── certificate.yaml
-│   ├── external-dns/        #   external-dns HelmRelease (Cloudflare provider)
+│   ├── external-dns/        #   external-dns HelmRelease (pinned to 1.21.1, Cloudflare provider)
 │   ├── image-repos/         #   Image repository references
 │   ├── image-automation.yaml
 │   ├── sources.yaml         #   HelmRepositories (bjw-s, jetstack, kubernetes-sigs)
