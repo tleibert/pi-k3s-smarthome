@@ -2,7 +2,7 @@
 
 Single-node K3s cluster on a Raspberry Pi running home automation services. Fully GitOps-managed via Flux CD — the repo is the source of truth.
 
-All apps are accessible over HTTPS with automatic TLS (cert-manager + Let's Encrypt) and automatic DNS (external-dns + Cloudflare).
+All apps are accessible over HTTPS with wildcard TLS (cert-manager + Let's Encrypt) and automatic DNS (external-dns + Cloudflare).
 
 ## Apps
 
@@ -102,7 +102,7 @@ Flux syncs and applies resources in **guaranteed order** via 6 Kustomizations wi
 
 **Two tracks after `gateway-crds`:**
 - **cert-manager-install** → installs cert-manager Helm chart (creates namespace, registers CRDs)
-- **cert-manager** → creates ClusterIssuer + Certificate (SANs for all 4 hostnames)
+- **cert-manager** → creates ClusterIssuer + Certificate (wildcard *.trevorleibert.com via DNS-01)
 - **external-dns** → waits for cert-manager-install (namespace exists), then starts watching HTTPRoutes
 - **infrastructure** → HelmRepos, Traefik Gateway provider, Gateway (HTTP→HTTPS redirect + TLS)
 - **apps** → waits for infrastructure, then installs app HelmReleases + HTTPRoutes
@@ -110,9 +110,10 @@ Flux syncs and applies resources in **guaranteed order** via 6 Kustomizations wi
 
 All apps are **HTTPS-only** — the HTTP listener on port 8000 serves a 301 redirect to HTTPS.
 
-The certificate Secret (`home-tls`) is created by cert-manager after Let's Encrypt issues the
-cert (DNS-01 challenge via Cloudflare). Traefik picks it up without restart and auto-renews
-~30 days before expiry.
+The wildcard Certificate (`*.trevorleibert.com`) is issued via Cloudflare DNS-01 challenge and
+stored as the `home-tls` Secret. Any new `*.trevorleibert.com` hostname is automatically
+covered — no cert config changes needed. Traefik picks up the Secret without restart
+and auto-renews ~30 days before expiry.
 
 Everything converges in a **single reconciliation pass** — no retry cycles.
 
