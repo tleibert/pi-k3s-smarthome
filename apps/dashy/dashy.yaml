@@ -59,6 +59,7 @@ spec:
           - "dashy.home.trevorleibert.com"
         parentRefs:
           - name: internal
+            sectionName: websecure
     persistence:
       config:
         enabled: true

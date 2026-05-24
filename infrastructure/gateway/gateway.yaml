@@ -22,3 +22,5 @@ spec:
         mode: Terminate
         certificateRefs:
           - name: home-tls
+            kind: Secret
+            group: ""

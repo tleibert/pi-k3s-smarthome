@@ -22,10 +22,10 @@ GitHub (this repo)
   ↓ Flux CD (every 10 min)
 K3s on Raspberry Pi (arm64, Debian)
   ├── Traefik (built-in, Gateway API provider)
-  │   ├── Gateway "internal" :8000 (HTTP) + :8443 (HTTPS)
+  │   ├── Gateway "internal" :8000 (HTTP→HTTPS 301 redirect) + :8443 (HTTPS)
   │   │   ├── TLS via cert-manager (Let's Encrypt, Cloudflare DNS-01)
   │   │   └── Auto-renewed certificates
-  │   ├── HTTPRoute: dashy, glances, ha, zwave
+  │   ├── HTTPRoute: https-redirect (port 8000) + dashy, glances, ha, zwave (port 8443)
   │   └── GatewayClass: traefik
   ├── cert-manager
   ├── Flux controllers (kustomize, helm, source, notification)
@@ -85,21 +85,25 @@ flux bootstrap github \
 
 ### What happens next
 
-Flux syncs and applies resources in **guaranteed order** via 3 Kustomizations with `dependsOn`:
+Flux syncs and applies resources in **guaranteed order** via 5 Kustomizations with `dependsOn`:
 
 ```
-gateway-crds    fetches Gateway API CRDs from upstream release URL
+gateway-crds          fetches Gateway API CRDs from upstream release URL
     ↓ dependsOn
-infrastructure  HelmRepository (bjw-s, jetstack), Traefik Gateway provider,
-                Gateway (HTTP + HTTPS), cert-manager, Let's Encrypt ClusterIssuer,
-                Wildcard Certificate
+cert-manager-install  creates cert-manager namespace + installs HelmRelease
     ↓ dependsOn
-apps            dashy, glances, homeassistant, zwave (HelmReleases + HTTPRoutes)
+cert-manager          ClusterIssuer (Let's Encrypt) + Certificate (wildcard)
+    ↓ dependsOn
+infrastructure        HelmRepos, Traefik Gateway provider, Gateway (HTTP→HTTPS redirect + TLS)
+    ↓ dependsOn
+apps                  dashy, glances, homeassistant, zwave (HTTPS-only via Gateway API)
 ```
 
-cert-manager will automatically request a wildcard certificate for `*.home.trevorleibert.com`
-on its first reconcile. The certificate Secret (`home-tls`) is referenced by the Gateway's
-TLS listener — Traefik picks it up without restart whenever it's renewed.
+All apps are HTTPS-only — the HTTP listener on port 8000 serves a 301 redirect to HTTPS.
+
+The certificate Secret (`home-tls`) is created by cert-manager after Let's Encrypt issues the
+cert (DNS-01 challenge via Cloudflare). Traefik picks it up without restart and auto-renews
+~30 days before expiry.
 
 Everything converges in a **single reconciliation pass** — no retry cycles.
 
@@ -119,7 +123,10 @@ Everything converges in a **single reconciliation pass** — no retry cycles.
 ├── infrastructure/          # Cluster-wide resources
 │   ├── gateway/             #   Gateway, Traefik HelmChartConfig
 │   │   └── crds/            #   Gateway API CRDs (fetched from upstream URL)
-│   ├── cert-manager/        #   cert-manager HelmRelease, ClusterIssuer, Certificate
+│   ├── cert-manager/        #   cert-manager resources
+│   │   ├── install/         #     Namespace + HelmRelease (pinned to v1.17.1)
+│   │   ├── cluster-issuer.yaml
+│   │   └── certificate.yaml
 │   ├── image-repos/         #   Image repository references
 │   ├── image-automation.yaml
 │   ├── sources.yaml         #   HelmRepositories (bjw-s, jetstack)

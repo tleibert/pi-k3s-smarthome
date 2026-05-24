@@ -62,3 +62,4 @@ spec:
           - "glances.home.trevorleibert.com"
         parentRefs:
           - name: internal
+            sectionName: websecure
