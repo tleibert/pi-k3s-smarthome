@@ -4,5 +4,8 @@ resources:
   - gotk-components.yaml
   - gotk-sync.yaml
   - gateway-crds.yaml
+  - cert-manager-install.yaml
+  - cert-manager.yaml
+  - external-dns.yaml
   - infrastructure.yaml
   - apps.yaml

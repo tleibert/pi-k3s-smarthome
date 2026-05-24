@@ -21,17 +21,17 @@ sections:
       - title: Home Assistant
         description: Local Smart Home Controller
         icon: https://www.home-assistant.io/images/favicon.ico
-        url: http://home.trevorpi.lan
+        url: https://ha.trevorleibert.com
         statusCheck: true
-        statusCheckUrl: http://home.trevorpi.lan
+        statusCheckUrl: https://ha.trevorleibert.com
         type: app
 
       - title: Z-Wave JS UI
         description: Manage your Z-Wave network
         icon: https://avatars.githubusercontent.com/u/54627315?s=200&v=4
-        url: http://zwave.trevorpi.lan
+        url: https://zwave.trevorleibert.com
         statusCheck: true
-        statusCheckUrl: http://zwave.trevorpi.lan/health
+        statusCheckUrl: https://zwave.trevorleibert.com/health
         type: app
 
   - name: Server Status
@@ -40,20 +40,20 @@ sections:
       - title: Glances
         description: System Monitoring
         icon: https://raw.githubusercontent.com/walkxhub/dashboard-icons/master/png/glances.png
-        url: http://glances.trevorpi.lan
+        url: https://glances.trevorleibert.com
         statusCheck: true
-        statusCheckUrl: http://glances.trevorpi.lan/api/4/status
+        statusCheckUrl: https://glances.trevorleibert.com/api/4/status
         type: app
     widgets:
       - type: gl-current-cores
         options:
-          hostname: http://glances.trevorpi.lan
+          hostname: https://glances.trevorleibert.com
       - type: gl-cpu-temp
         options:
-          hostname: http://glances.trevorpi.lan
+          hostname: https://glances.trevorleibert.com
       - type: gl-current-mem
         options:
-          hostname: http://glances.trevorpi.lan
+          hostname: https://glances.trevorleibert.com
       - type: gl-disk-space
         options:
-          hostname: http://glances.trevorpi.lan
+          hostname: https://glances.trevorleibert.com

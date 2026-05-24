@@ -59,6 +59,7 @@ spec:
       main:
         enabled: true
         hostnames:
-          - "glances.trevorpi.lan"
+          - "glances.trevorleibert.com"
         parentRefs:
           - name: internal
+            sectionName: websecure

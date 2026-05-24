@@ -55,10 +55,10 @@ spec:
       main:
         enabled: true
         hostnames:
-          - "trevorpi.lan"
-          - "dashy.trevorpi.lan"
+          - "dashy.trevorleibert.com"
         parentRefs:
           - name: internal
+            sectionName: websecure
     persistence:
       config:
         enabled: true

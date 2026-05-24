@@ -65,9 +65,10 @@ spec:
       main:
         enabled: true
         hostnames:
-          - "home.trevorpi.lan"
+          - "ha.trevorleibert.com"
         parentRefs:
           - name: internal
+            sectionName: websecure
     persistence:
       config:
         enabled: true
