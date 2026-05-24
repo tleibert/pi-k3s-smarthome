@@ -2,7 +2,7 @@
 
 Single-node K3s cluster on a Raspberry Pi running home automation services. Fully GitOps-managed via Flux CD — the repo is the source of truth.
 
-All apps are accessible over HTTPS with individual DNS records and automatic TLS via cert-manager + Let's Encrypt.
+All apps are accessible over HTTPS with automatic TLS (cert-manager + Let's Encrypt) and automatic DNS (external-dns + Cloudflare).
 
 ## Apps
 
@@ -27,15 +27,16 @@ K3s on Raspberry Pi (arm64, Debian)
   │   │   └── Auto-renewed certificates
   │   ├── HTTPRoute: https-redirect (port 8000) + dashy, glances, ha, zwave (port 8443)
   │   └── GatewayClass: traefik
-  ├── cert-manager
+  ├── cert-manager (Let's Encrypt TLS via Cloudflare DNS-01)
+  ├── external-dns (watches HTTPRoutes, creates Cloudflare A records)
   ├── Flux controllers (kustomize, helm, source, notification)
   ├── image-automation (auto-updates container tags)
-  └── DNS: individual A records → 192.168.4.20 (Cloudflare, grey cloud)
+  └── DNS: A records created automatically by external-dns → 192.168.4.20
 ```
 
 ## Bootstrap (Fresh Pi)
 
-Only **6 manual steps** — everything else is GitOps:
+Only **5 manual steps** — everything else is GitOps:
 
 ### 1. Install K3s
 ```bash
@@ -63,7 +64,7 @@ kubectl create secret generic cloudflare-api-token \
   --namespace cert-manager \
   --from-literal=api-token=<your-token>
 ```
-Required by cert-manager to complete DNS-01 challenges with Let's Encrypt.
+Required by cert-manager (DNS-01 challenges) and external-dns (creating A records).
 Token needs **Zone:DNS:Edit** permission for `trevorleibert.com`.
 Create one at https://dash.cloudflare.com/profile/api-tokens.
 
@@ -77,13 +78,11 @@ flux bootstrap github \
   --personal
 ```
 
-### 6. Set up DNS (Cloudflare)
-| Record | Type | Value | Proxy |
-|--------|------|-------|-------|
-| `dashy.trevorleibert.com` | A | `192.168.4.20` | Grey cloud (DNS only) |
-| `glances.trevorleibert.com` | A | `192.168.4.20` | Grey cloud (DNS only) |
-| `ha.trevorleibert.com` | A | `192.168.4.20` | Grey cloud (DNS only) |
-| `zwave.trevorleibert.com` | A | `192.168.4.20` | Grey cloud (DNS only) |
+### What happens next (automatic)
+
+external-dns watches your HTTPRoutes and creates the corresponding Cloudflare A records
+automatically. No manual DNS setup needed — add a new app with a hostname and the record
+appears within ~1 minute.
 
 ### What happens next
 
@@ -92,19 +91,21 @@ Flux syncs and applies resources in **guaranteed order** via 5 Kustomizations wi
 ```
                         gateway-crds
                               │
-             ┌────────────────┴────────────────┐
-             ↓                                 ↓
-    cert-manager-install              infrastructure
-             │                                 │
-             ↓                                 ↓
+             ┌────────────────┼────────────────┐
+             ↓                ↓                ↓
+    cert-manager-install   external-dns   infrastructure
+             │                               │
+             ↓                               ↓
        cert-manager                        apps
 ```
 
 **Parallel tracks after `gateway-crds`:**
 - **cert-manager-install** → installs cert-manager Helm chart (registers CRDs)
 - **cert-manager** → creates ClusterIssuer + Certificate (SANs for all 4 hostnames)
+- **external-dns** → installs external-dns, starts watching HTTPRoutes
 - **infrastructure** → HelmRepos, Traefik Gateway provider, Gateway (HTTP→HTTPS redirect + TLS)
 - **apps** → waits for infrastructure, then installs app HelmReleases + HTTPRoutes
+- **DNS records** → external-dns sees HTTPRoutes and creates A records in Cloudflare
 
 All apps are **HTTPS-only** — the HTTP listener on port 8000 serves a 301 redirect to HTTPS.
 
@@ -134,16 +135,17 @@ Everything converges in a **single reconciliation pass** — no retry cycles.
 │   │   ├── install/         #     Namespace + HelmRelease (pinned to v1.17.1)
 │   │   ├── cluster-issuer.yaml
 │   │   └── certificate.yaml
+│   ├── external-dns/        #   external-dns HelmRelease (Cloudflare provider)
 │   ├── image-repos/         #   Image repository references
 │   ├── image-automation.yaml
-│   ├── sources.yaml         #   HelmRepositories (bjw-s, jetstack)
+│   ├── sources.yaml         #   HelmRepositories (bjw-s, jetstack, kubernetes-sigs)
 │   └── kustomization.yaml
 └── docs/                    # Planning documents
 ```
 
 ## What's managed outside this repo
 
-- **DNS**: Cloudflare A records for individual subdomains → LAN IP — grey cloud (DNS only)
+- **DNS**: A records are created automatically by external-dns from HTTPRoute hostnames. Manual records only needed if you want to pre-create them before external-dns starts.
 - **TLS automation**: cert-manager handles Let's Encrypt renewal automatically (~30 days before expiry)
 - **Cloudflare API token**: Created manually in step 4, stored as a Kubernetes Secret
 - **Static IP**: `192.168.4.20` — configure via DHCP reservation or `/etc/network/interfaces`
