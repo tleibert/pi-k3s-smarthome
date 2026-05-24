@@ -8,7 +8,9 @@ spec:
   issuerRef:
     name: letsencrypt-prod
     kind: ClusterIssuer
-  commonName: home.trevorleibert.com
+  commonName: dashy.trevorleibert.com
   dnsNames:
-    - home.trevorleibert.com
-    - "*.home.trevorleibert.com"
+    - dashy.trevorleibert.com
+    - glances.trevorleibert.com
+    - ha.trevorleibert.com
+    - zwave.trevorleibert.com

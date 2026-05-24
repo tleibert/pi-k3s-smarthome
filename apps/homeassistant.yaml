@@ -65,7 +65,7 @@ spec:
       main:
         enabled: true
         hostnames:
-          - "ha.home.trevorleibert.com"
+          - "ha.trevorleibert.com"
         parentRefs:
           - name: internal
             sectionName: websecure

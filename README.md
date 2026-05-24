@@ -2,16 +2,16 @@
 
 Single-node K3s cluster on a Raspberry Pi running home automation services. Fully GitOps-managed via Flux CD — the repo is the source of truth.
 
-All apps are accessible at `*.home.trevorleibert.com` with automatic TLS via cert-manager + Let's Encrypt.
+All apps are accessible over HTTPS with individual DNS records and automatic TLS via cert-manager + Let's Encrypt.
 
 ## Apps
 
 | App | Host | Port | TLS |
 |-----|------|------|-----|
-| [Dashy](https://dashy.to/) | `home.trevorleibert.com` / `dashy.home.trevorleibert.com` | 8080 | ✅ |
-| [Glances](https://nicolargo.github.io/glances/) | `glances.home.trevorleibert.com` | 61208 | ✅ |
-| [Home Assistant](https://www.home-assistant.io/) | `ha.home.trevorleibert.com` | 8123 | ✅ |
-| [Z-Wave JS UI](https://zwave-js.github.io/zwave-js-ui/) | `zwave.home.trevorleibert.com` | 8091 | ✅ |
+| [Dashy](https://dashy.to/) | `dashy.trevorleibert.com` | 8080 | ✅ |
+| [Glances](https://nicolargo.github.io/glances/) | `glances.trevorleibert.com` | 61208 | ✅ |
+| [Home Assistant](https://www.home-assistant.io/) | `ha.trevorleibert.com` | 8123 | ✅ |
+| [Z-Wave JS UI](https://zwave-js.github.io/zwave-js-ui/) | `zwave.trevorleibert.com` | 8091 | ✅ |
 
 All apps use the [bjw-s app-template](https://github.com/bjw-s/helm-charts) Helm chart with native Gateway API `route` blocks.
 
@@ -30,7 +30,7 @@ K3s on Raspberry Pi (arm64, Debian)
   ├── cert-manager
   ├── Flux controllers (kustomize, helm, source, notification)
   ├── image-automation (auto-updates container tags)
-  └── DNS: *.home.trevorleibert.com → 192.168.4.20 (Cloudflare, grey cloud)
+  └── DNS: individual A records → 192.168.4.20 (Cloudflare, grey cloud)
 ```
 
 ## Bootstrap (Fresh Pi)
@@ -80,8 +80,10 @@ flux bootstrap github \
 ### 6. Set up DNS (Cloudflare)
 | Record | Type | Value | Proxy |
 |--------|------|-------|-------|
-| `home.trevorleibert.com` | A | `192.168.4.20` | Grey cloud (DNS only) |
-| `*.home.trevorleibert.com` | A | `192.168.4.20` | Grey cloud (DNS only) |
+| `dashy.trevorleibert.com` | A | `192.168.4.20` | Grey cloud (DNS only) |
+| `glances.trevorleibert.com` | A | `192.168.4.20` | Grey cloud (DNS only) |
+| `ha.trevorleibert.com` | A | `192.168.4.20` | Grey cloud (DNS only) |
+| `zwave.trevorleibert.com` | A | `192.168.4.20` | Grey cloud (DNS only) |
 
 ### What happens next
 
@@ -100,7 +102,7 @@ Flux syncs and applies resources in **guaranteed order** via 5 Kustomizations wi
 
 **Parallel tracks after `gateway-crds`:**
 - **cert-manager-install** → installs cert-manager Helm chart (registers CRDs)
-- **cert-manager** → creates ClusterIssuer + Certificate (wildcard *.home.trevorleibert.com)
+- **cert-manager** → creates ClusterIssuer + Certificate (SANs for all 4 hostnames)
 - **infrastructure** → HelmRepos, Traefik Gateway provider, Gateway (HTTP→HTTPS redirect + TLS)
 - **apps** → waits for infrastructure, then installs app HelmReleases + HTTPRoutes
 
@@ -141,13 +143,13 @@ Everything converges in a **single reconciliation pass** — no retry cycles.
 
 ## What's managed outside this repo
 
-- **DNS**: Cloudflare A records for `*.home.trevorleibert.com` → LAN IP — grey cloud (DNS only)
+- **DNS**: Cloudflare A records for individual subdomains → LAN IP — grey cloud (DNS only)
 - **TLS automation**: cert-manager handles Let's Encrypt renewal automatically (~30 days before expiry)
 - **Cloudflare API token**: Created manually in step 4, stored as a Kubernetes Secret
 - **Static IP**: `192.168.4.20` — configure via DHCP reservation or `/etc/network/interfaces`
 - **Z-Wave USB radio**: Path `/dev/serial/by-id/usb-1a86_USB_Single_Serial_58E3038596-if00` is hardware-specific; update `apps/zwave.yaml` for a different Pi/radio
 - **K3s itself**: Installed once, self-updating via built-in upgrade controller
-- **mDNS / Avahi**: `.trevorpi.lan` still resolves locally if needed, but the primary domain is now `home.trevorleibert.com`
+- **mDNS / Avahi**: `.trevorpi.lan` still resolves locally if needed, but the primary domains are now `*.trevorleibert.com`
 
 ## Daily Operations
 

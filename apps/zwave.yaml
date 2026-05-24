@@ -67,7 +67,7 @@ spec:
       main:
         enabled: true
         hostnames:
-          - "zwave.home.trevorleibert.com"
+          - "zwave.trevorleibert.com"
         parentRefs:
           - name: internal
             sectionName: websecure
