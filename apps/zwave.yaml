@@ -67,7 +67,7 @@ spec:
       main:
         enabled: true
         hostnames:
-          - "zwave.trevorpi.lan"
+          - "zwave.home.trevorleibert.com"
         parentRefs:
           - name: internal
     persistence:

@@ -65,7 +65,7 @@ spec:
       main:
         enabled: true
         hostnames:
-          - "home.trevorpi.lan"
+          - "ha.home.trevorleibert.com"
         parentRefs:
           - name: internal
     persistence:

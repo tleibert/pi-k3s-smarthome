@@ -59,6 +59,6 @@ spec:
       main:
         enabled: true
         hostnames:
-          - "glances.trevorpi.lan"
+          - "glances.home.trevorleibert.com"
         parentRefs:
           - name: internal
