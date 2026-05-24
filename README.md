@@ -86,23 +86,24 @@ appears within ~1 minute.
 
 ### What happens next
 
-Flux syncs and applies resources in **guaranteed order** via 5 Kustomizations with `dependsOn`:
+Flux syncs and applies resources in **guaranteed order** via 6 Kustomizations with `dependsOn`:
 
 ```
                         gateway-crds
                               │
-             ┌────────────────┼────────────────┐
-             ↓                ↓                ↓
-    cert-manager-install   external-dns   infrastructure
-             │                               │
-             ↓                               ↓
-       cert-manager                        apps
+             ┌────────────────┴────────────────┐
+             ↓                                 ↓
+    cert-manager-install              infrastructure
+             │                                 │
+    ┌────────┴────────┐                        ↓
+    ↓                 ↓                      apps
+ cert-manager   external-dns
 ```
 
-**Parallel tracks after `gateway-crds`:**
-- **cert-manager-install** → installs cert-manager Helm chart (registers CRDs)
+**Two tracks after `gateway-crds`:**
+- **cert-manager-install** → installs cert-manager Helm chart (creates namespace, registers CRDs)
 - **cert-manager** → creates ClusterIssuer + Certificate (SANs for all 4 hostnames)
-- **external-dns** → installs external-dns, starts watching HTTPRoutes
+- **external-dns** → waits for cert-manager-install (namespace exists), then starts watching HTTPRoutes
 - **infrastructure** → HelmRepos, Traefik Gateway provider, Gateway (HTTP→HTTPS redirect + TLS)
 - **apps** → waits for infrastructure, then installs app HelmReleases + HTTPRoutes
 - **DNS records** → external-dns sees HTTPRoutes and creates A records in Cloudflare

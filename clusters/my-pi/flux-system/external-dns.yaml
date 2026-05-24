@@ -13,3 +13,4 @@ spec:
     name: flux-system
   dependsOn:
     - name: gateway-crds
+    - name: cert-manager-install
