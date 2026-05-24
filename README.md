@@ -88,18 +88,23 @@ flux bootstrap github \
 Flux syncs and applies resources in **guaranteed order** via 5 Kustomizations with `dependsOn`:
 
 ```
-gateway-crds          fetches Gateway API CRDs from upstream release URL
-    ↓ dependsOn
-cert-manager-install  creates cert-manager namespace + installs HelmRelease
-    ↓ dependsOn
-cert-manager          ClusterIssuer (Let's Encrypt) + Certificate (wildcard)
-    ↓ dependsOn
-infrastructure        HelmRepos, Traefik Gateway provider, Gateway (HTTP→HTTPS redirect + TLS)
-    ↓ dependsOn
-apps                  dashy, glances, homeassistant, zwave (HTTPS-only via Gateway API)
+                        gateway-crds
+                              │
+             ┌────────────────┴────────────────┐
+             ↓                                 ↓
+    cert-manager-install              infrastructure
+             │                                 │
+             ↓                                 ↓
+       cert-manager                        apps
 ```
 
-All apps are HTTPS-only — the HTTP listener on port 8000 serves a 301 redirect to HTTPS.
+**Parallel tracks after `gateway-crds`:**
+- **cert-manager-install** → installs cert-manager Helm chart (registers CRDs)
+- **cert-manager** → creates ClusterIssuer + Certificate (wildcard *.home.trevorleibert.com)
+- **infrastructure** → HelmRepos, Traefik Gateway provider, Gateway (HTTP→HTTPS redirect + TLS)
+- **apps** → waits for infrastructure, then installs app HelmReleases + HTTPRoutes
+
+All apps are **HTTPS-only** — the HTTP listener on port 8000 serves a 301 redirect to HTTPS.
 
 The certificate Secret (`home-tls`) is created by cert-manager after Let's Encrypt issues the
 cert (DNS-01 challenge via Cloudflare). Traefik picks it up without restart and auto-renews
