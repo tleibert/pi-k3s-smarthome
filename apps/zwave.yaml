@@ -71,6 +71,9 @@ spec:
         parentRefs:
           - name: internal
             sectionName: websecure
+        services:
+          - name: main
+            port: http
     persistence:
       config:
         enabled: true
