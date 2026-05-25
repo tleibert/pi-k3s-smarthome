@@ -5,4 +5,3 @@ resources:
   - glances.yaml
   - homeassistant.yaml
   - zwave.yaml
-  - zwave-httproute.yaml

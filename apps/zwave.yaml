@@ -61,11 +61,17 @@ spec:
         ports:
           http:
             port: 8091
+            primary: true
           api:
             port: 3000
     route:
       main:
-        enabled: false
+        enabled: true
+        hostnames:
+          - "zwave.trevorleibert.com"
+        parentRefs:
+          - name: internal
+            sectionName: websecure
     persistence:
       config:
         enabled: true
