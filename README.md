@@ -153,7 +153,7 @@ Everything converges in a **single reconciliation pass** — no retry cycles.
 - **Static IP**: `192.168.4.20` — configure via DHCP reservation or `/etc/network/interfaces`
 - **Z-Wave USB radio**: Path `/dev/serial/by-id/usb-1a86_USB_Single_Serial_58E3038596-if00` is hardware-specific; update `apps/zwave.yaml` for a different Pi/radio
 - **K3s itself**: Installed once, self-updating via built-in upgrade controller
-- **mDNS / Avahi**: `.trevorpi.lan` still resolves locally if needed, but the primary domains are now `*.trevorleibert.com`
+
 
 ## Daily Operations
 
