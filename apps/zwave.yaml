@@ -65,15 +65,7 @@ spec:
             port: 3000
     route:
       main:
-        enabled: true
-        hostnames:
-          - "zwave.trevorleibert.com"
-        parentRefs:
-          - name: internal
-            sectionName: websecure
-        services:
-          - name: main
-            port: http
+        enabled: false
     persistence:
       config:
         enabled: true
