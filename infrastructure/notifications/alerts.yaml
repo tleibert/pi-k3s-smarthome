@@ -1,0 +1,46 @@
+---
+# Alert for cluster-wide failures across apps and infrastructure.
+# Fires on HelmRelease, Kustomization, ImageRepository, and ImageAutomation errors.
+# Requires a Secret named `discord-webhook` in the flux-system namespace
+# with key `address` containing the Discord webhook URL.
+#
+# Create manually:
+#   kubectl create secret generic discord-webhook \
+#     --namespace=flux-system \
+#     --from-literal=address=https://discord.com/api/webhooks/...
+apiVersion: notification.toolkit.fluxcd.io/v1beta3
+kind: Alert
+metadata:
+  name: cluster-failures
+  namespace: flux-system
+spec:
+  summary: "Pi K3s homelab"
+  providerRef:
+    name: discord
+  eventSeverity: error
+  eventSources:
+    # Application HelmReleases
+    - kind: HelmRelease
+      name: "*"
+      namespace: default
+    # Infrastructure HelmReleases
+    - kind: HelmRelease
+      name: "*"
+      namespace: cert-manager
+    - kind: HelmRelease
+      name: "*"
+      namespace: kube-system
+    # Image automation failures
+    - kind: ImageUpdateAutomation
+      name: "*"
+      namespace: flux-system
+    - kind: ImagePolicy
+      name: "*"
+      namespace: flux-system
+    - kind: ImageRepository
+      name: "*"
+      namespace: flux-system
+    # Kustomization failures
+    - kind: Kustomization
+      name: "*"
+      namespace: flux-system
