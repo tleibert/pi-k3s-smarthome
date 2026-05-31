@@ -23,13 +23,10 @@ spec:
     - kind: HelmRelease
       name: "*"
       namespace: default
-    # Infrastructure HelmReleases
+    # Infrastructure HelmReleases (cert-manager)
     - kind: HelmRelease
       name: "*"
       namespace: cert-manager
-    - kind: HelmRelease
-      name: "*"
-      namespace: kube-system
     # Image automation failures
     - kind: ImageUpdateAutomation
       name: "*"
