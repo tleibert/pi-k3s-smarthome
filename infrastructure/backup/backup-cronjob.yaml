@@ -1,0 +1,91 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: restic-backup
+  namespace: flux-system
+spec:
+  schedule: "0 4 * * *" # nightly 04:00 UTC
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 900
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      activeDeadlineSeconds: 3600
+      template:
+        spec:
+          restartPolicy: OnFailure
+          # hostPaths below only exist on the trevorpi node
+          nodeSelector:
+            zigbee: "true"
+          containers:
+            - name: restic
+              image: restic/restic:0.19.1 # pinned deliberately; see README
+              command: ["/bin/sh", "-c"]
+              args:
+                - apk add --no-cache sqlite curl >/dev/null 2>&1 && exec /bin/sh /scripts/backup.sh
+              env:
+                - name: RESTIC_REPOSITORY
+                  valueFrom:
+                    secretKeyRef:
+                      name: restic-backup-credentials
+                      key: RESTIC_REPOSITORY
+                - name: AWS_ACCESS_KEY_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: restic-backup-credentials
+                      key: AWS_ACCESS_KEY_ID
+                - name: AWS_SECRET_ACCESS_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: restic-backup-credentials
+                      key: AWS_SECRET_ACCESS_KEY
+                - name: RESTIC_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: restic-backup-credentials
+                      key: RESTIC_PASSWORD
+                # optional: Discord webhook for failure alerts; add this key
+                # to the secret later if desired
+                - name: NOTIFY_URL
+                  valueFrom:
+                    secretKeyRef:
+                      name: restic-backup-credentials
+                      key: NOTIFY_URL
+                      optional: true
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 128Mi
+                limits:
+                  cpu: 500m
+                  memory: 512Mi
+              volumeMounts:
+                - name: homeassistant
+                  mountPath: /src/homeassistant
+                  readOnly: true
+                - name: zwave
+                  mountPath: /src/zwave
+                  readOnly: true
+                - name: staging
+                  mountPath: /staging
+                - name: script
+                  mountPath: /scripts/backup.sh
+                  subPath: backup.sh
+                  readOnly: true
+          volumes:
+            - name: homeassistant
+              hostPath:
+                path: /root/container-data/homeassistant
+                type: Directory
+            - name: zwave
+              hostPath:
+                path: /root/container-data/zwave-ui
+                type: Directory
+            - name: staging
+              emptyDir: {}
+            - name: script
+              configMap:
+                name: restic-backup-script
+                defaultMode: 0444
