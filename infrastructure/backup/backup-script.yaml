@@ -22,7 +22,8 @@ data:
 
     # --- stage consistent copies at a single point in time ---
     STAGE=/staging
-    rm -rf "${STAGE}"
+    # /staging is an emptyDir mount point -- clear contents, not the mount
+    find "${STAGE}" -mindepth 1 -delete 2>/dev/null || true
     mkdir -p "${STAGE}/homeassistant" "${STAGE}/zwave"
 
     # Home Assistant /config: raw copy of atomically-written files, plus
