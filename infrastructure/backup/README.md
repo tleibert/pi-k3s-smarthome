@@ -44,7 +44,7 @@ The repo only references secrets by name — nothing sensitive is committed
 (consistent with `cloudflare-api-token`).
 
 ```sh
-# 1. Cloudflare: create bucket "trevorpi-backup" + an R2 API token scoped to
+# 1. Cloudflare: create bucket "ha-backup" + an R2 API token scoped to
 #    Object Read & Write on that bucket only. Note your account ID.
 
 # 2. Generate a repo password (the ONLY key to the backups):
@@ -52,7 +52,7 @@ openssl rand -base64 48
 
 # 3. Create the credentials secret:
 kubectl create secret generic restic-backup-credentials -n flux-system \
-  --from-literal=RESTIC_REPOSITORY='s3:https://<ACCOUNT_ID>.r2.cloudflarestorage.com/trevorpi-backup/restic' \
+  --from-literal=RESTIC_REPOSITORY='s3:https://<ACCOUNT_ID>.r2.cloudflarestorage.com/ha-backup/restic' \
   --from-literal=AWS_ACCESS_KEY_ID='<R2_ACCESS_KEY>' \
   --from-literal=AWS_SECRET_ACCESS_KEY='<R2_SECRET>' \
   --from-literal=RESTIC_PASSWORD='<GENERATED>'
@@ -95,7 +95,7 @@ coordinator's NVRAM → needed to restore a network onto a *replacement* stick.
 ## Restore (fresh machine)
 
 ```sh
-export RESTIC_REPOSITORY='s3:https://<ACCOUNT_ID>.r2.cloudflarestorage.com/trevorpi-backup/restic'
+export RESTIC_REPOSITORY='s3:https://<ACCOUNT_ID>.r2.cloudflarestorage.com/ha-backup/restic'
 export AWS_ACCESS_KEY_ID=... AWS_SECRET_ACCESS_KEY=... RESTIC_PASSWORD=...
 restic -o s3.region=auto snapshots          # find the latest
 restic -o s3.region=auto restore latest --target /tmp/restore
