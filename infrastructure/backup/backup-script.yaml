@@ -47,27 +47,33 @@ data:
       echo "[warn] /src/homeassistant not mounted; skipping HA config"
     fi
 
-    # zwave-js-ui: store backup + NVM via its REST API (ClusterIP, no auth).
-    # NVM export only exists on 700/800-series sticks -- expected to fail
-    # otherwise, so it is tolerated.
-    ZWAVE_API="http://zwave.default.svc.cluster.local:3000"
-    if curl -fsS --max-time 15 "${ZWAVE_API}/health" >/dev/null 2>&1; then
-      if curl -fsS --max-time 120 -X POST -o "${STAGE}/zwave/store-backup.zip" \
-          "${ZWAVE_API}/api/backup"; then
-        echo "[ok] zwave store backup"
-      else
-        echo "[warn] zwave store API backup failed"
-      fi
-      if curl -fsS --max-time 120 -o "${STAGE}/zwave/nvm.bin" \
-          "${ZWAVE_API}/api/nvm/backup"; then
-        echo "[ok] zwave NVM backup (700/800-series stick)"
-      else
-        echo "[warn] NVM backup unavailable (expected on 500-series sticks)"
-        rm -f "${STAGE}/zwave/nvm.bin"
+    # zwave-js-ui: store backup via its REST API (port 8091; the API is
+    # content-negotiated -- it answers JSON only when Accept: application/json
+    # is sent, otherwise it serves the SPA). 
+    # NVM: produced by zwave-js-ui's own scheduler (settings 'backup', cron
+    # 03:00) straight into store/backups/nvm/ on the hostPath -- we snapshot
+    # the newest NVM_*.bin rather than calling an API that does not exist in
+    # v11.x (stick is 800-series, so these are real NVM files).
+    ZWAVE_API="http://zwave.default.svc.cluster.local:8091"
+    ACCEPT="Accept: application/json"
+    if curl -fsS --max-time 120 \
+        -H "${ACCEPT}" \
+        -o "${STAGE}/zwave/store-backup.zip" \
+        "${ZWAVE_API}/api/store/backup"; then
+      echo "[ok] zwave store backup (zip)"
+    else
+      echo "[warn] store API backup failed (zwave down?); capturing store dir raw"
+      [ -d /src/zwave ] && cp -a /src/zwave/. "${STAGE}/zwave/store/"
+    fi
+
+    if [ -d /src/zwave/backups/nvm ]; then
+      newest="$(find /src/zwave/backups/nvm -name 'NVM_*.bin' 2>/dev/null | sort -V | tail -1 || true)"
+      if [ -n "${newest}" ] && [ -f "${newest}" ]; then
+        cp "${newest}" "${STAGE}/zwave/nvm.bin"
+        echo "[ok] zwave NVM backup: $(basename "${newest}")"
       fi
     else
-      echo "[warn] zwave API unreachable; capturing store dir only"
-      [ -d /src/zwave ] && cp -a /src/zwave/. "${STAGE}/zwave/store/"
+      echo "[warn] no NVM backups dir (scheduler not enabled? see README); NVM excluded"
     fi
 
     # --- restic: init once, then backup / forget / prune ---

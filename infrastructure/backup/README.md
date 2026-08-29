@@ -14,16 +14,29 @@ own.
 | Source | How | Why |
 |---|---|---|
 | HA `/config` (`.storage`, yaml, `custom_components` incl. HACS, `zigbee.db`) | hostPath read-only; sqlite online `.backup` for the live DBs | full HA config + ZHA device catalog |
-| zwave-js-ui store + NVM | REST API (`/api/backup`, `/api/nvm/backup`) via in-cluster service | controller state + Z-Wave network topology |
+| zwave-js-ui store | REST API zip (`GET /api/store/backup`, port 8091, `Accept: application/json`) | controller config, node cache, provisioning keys |
+| Z-Wave NVM | zwave-js-ui's built-in scheduler writes `store/backups/nvm/NVM_*.bin` at 03:00 UTC; newest file snapshotted | stick NVRAM: topology, routing, S2/S0 keys (800-series stick confirmed) |
 | ZHA network backup (network key) | manual, quarterly (see below) | stick-death insurance — not exportable headlessly |
 
 `home-assistant_v2.db` (recorder history) is included in the tar/snapshot but
 HA's default 10-day purge keeps it at a plateau (~100 MB), so it stays small.
 If you configure long history retention, reconsider.
 
-The **zwave NVM export only exists on 700/800-series sticks** — on a
-500-series it is expected to fail and is silently tolerated (the store backup
-still runs).
+The **zwave NVM export only exists on 700/800-series sticks** — this node has
+an 800-series stick, so the scheduler produces real NVM files nightly.
+
+One-time: enable the built-in backup schedulers in zwave-js-ui (Settings →
+save, then restart the gateway) so it writes backups at 03:00 UTC, before the
+04:00 restic run. Done on the live cluster already (settings key `backup`,
+`nvmCron`/`storeCron` = `0 3 * * *`, keep 14):
+
+```sh
+# easiest via the UI, or:
+# fetch settings, set settings.backup = {nvmBackup:true, nvmCron:"0 3 * * *",
+#   nvmBackupOnEvent:false, nvmKeep:14, storeBackup:true, storeCron:"0 3 * * *", storeKeep:14},
+# then POST /api/settings and POST /api/restart (config is re-read on restart)
+# -- both with header "Accept: application/json" (the API is content-negotiated)
+```
 
 ## One-time setup (outside the repo, matching existing secret convention)
 
@@ -63,8 +76,13 @@ initialises the repository automatically (`restic init`).
   per-GiB only matters past the free tier, and its min-duration billing
   penalizes pruned (young) packs + costs more on reads — the wrong shape for
   nightly deltas read all-at-once during a restore.
-- **restic native `s3` backend against R2 directly** — no rclone layer
+- **restic `s3` backend against R2 directly** — no rclone layer
   (rclone stays for the OCI/Minecraft repo where the endpoint is quirky).
+- **zwave API on port 8091 with `Accept: application/json`** — the API is
+  content-negotiated: without the header it serves the SPA (discovered during
+  bring-up; the store backup is `GET /api/store/backup`, not `/api/backup`,
+  and v11.x has no REST NVM route at all — the app's own scheduler + hostPath
+  capture is the correct mechanism).
 
 ## ZHA network key — the one manual step (quarterly / before stick changes)
 
@@ -86,8 +104,11 @@ restic -o s3.region=auto restore latest --target /tmp/restore
 Map back onto the node:
 
 - `/tmp/restore/homeassistant/*` → `/root/container-data/homeassistant/`
-- zwave store: extract `zwave/store-backup.zip` → `/root/container-data/zwave-ui/`
-  (or copy `zwave/store/` if the API was unreachable that night)
+- extract `zwave/store-backup.zip` → `/root/container-data/zwave-ui/`
+  (or copy `zwave/store/` raw if the API was down that night)
+- `zwave/nvm.bin` → `/root/container-data/zwave-ui/backups/nvm/` (restore
+  from anywhere via UI: Settings → Backup NVM → upload), or restore directly
+  over a replacement 800-series stick via the UI "Restore NVM" flow
 
 Do this with the HA / zwave pods scaled to 0, then scale back up. The sqlite
 snapshots are consistent by construction — restore as-is.
