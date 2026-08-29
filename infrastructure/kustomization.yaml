@@ -6,3 +6,4 @@ resources:
   - sources.yaml
   - gateway
   - notifications
+  - backup

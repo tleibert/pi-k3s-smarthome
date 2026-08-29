@@ -1,0 +1,96 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: restic-backup-script
+  namespace: flux-system
+data:
+  backup.sh: |
+    #!/bin/sh
+    set -eu
+
+    notify() {
+      if [ -n "${NOTIFY_URL:-}" ]; then
+        curl -fsS --max-time 15 -H 'Content-Type: application/json' \
+          -d "{\"content\":\"**restic nightly backup failure**: $1\"}" \
+          "${NOTIFY_URL}" >/dev/null 2>&1 || true
+      fi
+    }
+
+    # R2 is drop-in S3; the 'auto' region flag is the standard R2 incantation.
+    # Passed as a single argv token (restic expects -o name=value as one arg).
+    ROPT="-o s3.region=auto"
+
+    # --- stage consistent copies at a single point in time ---
+    STAGE=/staging
+    rm -rf "${STAGE}"
+    mkdir -p "${STAGE}/homeassistant" "${STAGE}/zwave"
+
+    # Home Assistant /config: raw copy of atomically-written files, plus
+    # sqlite-safe online snapshots of the live databases (WAL mode files
+    # cannot be copied safely while running).
+    if [ -d /src/homeassistant ]; then
+      cp -a /src/homeassistant/. "${STAGE}/homeassistant/"
+      for db in home-assistant_v2.db zigbee.db; do
+        src="/src/homeassistant/${db}"
+        if [ -f "${src}" ]; then
+          rm -f "${STAGE}/homeassistant/${db}" \
+                "${STAGE}/homeassistant/${db}-wal" \
+                "${STAGE}/homeassistant/${db}-shm"
+          if sqlite3 "${src}" ".backup '${STAGE}/homeassistant/${db}'" >/dev/null 2>&1; then
+            echo "[ok] sqlite snapshot ${db}"
+          else
+            echo "[warn] sqlite3 failed for ${db}; keeping raw copy"
+          fi
+        fi
+      done
+    else
+      echo "[warn] /src/homeassistant not mounted; skipping HA config"
+    fi
+
+    # zwave-js-ui: store backup + NVM via its REST API (ClusterIP, no auth).
+    # NVM export only exists on 700/800-series sticks -- expected to fail
+    # otherwise, so it is tolerated.
+    ZWAVE_API="http://zwave.default.svc.cluster.local:3000"
+    if curl -fsS --max-time 15 "${ZWAVE_API}/health" >/dev/null 2>&1; then
+      if curl -fsS --max-time 120 -X POST -o "${STAGE}/zwave/store-backup.zip" \
+          "${ZWAVE_API}/api/backup"; then
+        echo "[ok] zwave store backup"
+      else
+        echo "[warn] zwave store API backup failed"
+      fi
+      if curl -fsS --max-time 120 -o "${STAGE}/zwave/nvm.bin" \
+          "${ZWAVE_API}/api/nvm/backup"; then
+        echo "[ok] zwave NVM backup (700/800-series stick)"
+      else
+        echo "[warn] NVM backup unavailable (expected on 500-series sticks)"
+        rm -f "${STAGE}/zwave/nvm.bin"
+      fi
+    else
+      echo "[warn] zwave API unreachable; capturing store dir only"
+      [ -d /src/zwave ] && cp -a /src/zwave/. "${STAGE}/zwave/store/"
+    fi
+
+    # --- restic: init once, then backup / forget / prune ---
+    if ! restic "${ROPT}" cat config >/dev/null 2>&1; then
+      echo "[init] creating restic repository"
+      restic "${ROPT}" init
+    fi
+
+    if ! restic "${ROPT}" backup "${STAGE}" \
+        --host trevorpi-backups \
+        --tag nightly; then
+      notify "restic backup command failed"
+      exit 1
+    fi
+    echo "[ok] restic backup complete"
+
+    if ! restic "${ROPT}" forget \
+        --keep-daily 7 --keep-weekly 4 --keep-monthly 3 \
+        --prune; then
+      notify "restic forget/prune failed"
+      exit 1
+    fi
+    echo "[ok] retention applied (7d/4w/3m)"
+
+    du -sh "${STAGE}" | sed 's/^/[info] staged /'
+    echo "[ok] nightly backup finished"
