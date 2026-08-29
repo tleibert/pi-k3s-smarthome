@@ -23,6 +23,41 @@ spec:
           hostNetwork: true
           nodeSelector:
             zigbee: "true"
+        initContainers:
+          init-hacs:
+            image:
+              repository: curlimages/curl
+              tag: 8.11.1
+            command:
+              - /bin/sh
+              - -c
+              - |
+                set -eu
+                VERSION="${HACS_VERSION:-2.0.5}"
+                DEST=/config/custom_components/hacs
+                if [ -f "${DEST}/manifest.json" ] && grep -q "${VERSION}" "${DEST}/manifest.json"; then
+                  echo "HACS ${VERSION} already installed, skipping"
+                  exit 0
+                fi
+                echo "Installing HACS ${VERSION}"
+                mkdir -p /config/custom_components
+                rm -rf "${DEST}"
+                apk add --no-cache unzip >/dev/null 2>&1 || true
+                curl -fsSL "https://github.com/hacs/integration/releases/download/${VERSION}/hacs.zip" -o /tmp/hacs.zip
+                unzip -o -q /tmp/hacs.zip -d "${DEST}"
+                rm -f /tmp/hacs.zip
+                echo "HACS ${VERSION} installed"
+            env:
+              - name: HACS_VERSION
+                value: "2.0.5"
+            securityContext:
+              runAsUser: 0
+            resources:
+              requests:
+                cpu: 10m
+                memory: 32Mi
+              limits:
+                memory: 128Mi
         containers:
           main:
             image:
@@ -74,8 +109,12 @@ spec:
         enabled: true
         type: hostPath
         hostPath: /root/container-data/homeassistant
-        globalMounts:
-          - path: /config
+        advancedMounts:
+          main:
+            main:
+              - path: /config
+            init-hacs:
+              - path: /config
       dbus:
         enabled: true
         type: hostPath
