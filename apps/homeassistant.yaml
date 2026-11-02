@@ -66,6 +66,55 @@ spec:
                 memory: 32Mi
               limits:
                 memory: 128Mi
+          init-ha-mcp:
+            image:
+              repository: curlimages/curl
+              tag: 8.11.1
+            command:
+              - /bin/sh
+              - -c
+              - |
+                set -eu
+                # Pinned HA-MCP release; bump together with the release tag.
+                VERSION=9.0.0
+                # sha256 of the GitHub source tarball for v${VERSION}.
+                SHA256=68d49da65feae00e80ee9560fbd97df05a1bc9f9b589f8d51a8f937e90b8bf6b
+                DEST=/config/custom_components/ha_mcp_tools
+                WORK=/tmp/ha-mcp
+                # The installed copy in /config is the cache, as with init-hacs.
+                LOCAL="$(sed -n 's/.*"version": *"\([^"]*\)".*/\1/p' "${DEST}/manifest.json" 2>/dev/null || true)"
+                if [ "${LOCAL}" = "${VERSION}" ]; then
+                  echo "HA-MCP ${VERSION} already installed, skipping"
+                  exit 0
+                fi
+                apk add --no-cache tar >/dev/null 2>&1 || true
+                rm -rf "${WORK}" && mkdir -p "${WORK}"
+                if ! { curl -fsSL --max-time 60 "https://github.com/homeassistant-ai/ha-mcp/archive/refs/tags/v${VERSION}.tar.gz" -o "${WORK}/src.tgz" \
+                  && echo "${SHA256}  ${WORK}/src.tgz" | sha256sum -c - >/dev/null \
+                  && tar -xzf "${WORK}/src.tgz" -C "${WORK}" \
+                  && SRC="$(find "${WORK}" -maxdepth 4 -type d -path '*/custom_components/ha_mcp_tools' | head -1)" \
+                  && test -n "${SRC}" && test -f "${SRC}/manifest.json"; }; then
+                  rm -rf "${WORK}"
+                  if [ -n "${LOCAL}" ]; then
+                    echo "Could not fetch or verify HA-MCP ${VERSION}; keeping installed ${LOCAL}"
+                    exit 0
+                  fi
+                  echo "Could not fetch or verify HA-MCP ${VERSION} and it is not installed; aborting" >&2
+                  exit 1
+                fi
+                mkdir -p /config/custom_components
+                rm -rf "${DEST}"
+                mv "${SRC}" "${DEST}"
+                rm -rf "${WORK}"
+                echo "HA-MCP ${VERSION} installed"
+            securityContext:
+              runAsUser: 0
+            resources:
+              requests:
+                cpu: 10m
+                memory: 32Mi
+              limits:
+                memory: 128Mi
         containers:
           main:
             image:
@@ -122,6 +171,8 @@ spec:
             main:
               - path: /config
             init-hacs:
+              - path: /config
+            init-ha-mcp:
               - path: /config
       dbus:
         enabled: true
